@@ -9,7 +9,7 @@ tree is walked depth-first visiting every node, including everything inside func
 |---|---|---|
 | `congo` | `new KotlinParser(name, text).KotlinFile()` (congo-grammars `kotlin/`, default settings) | `Node.size()` / `Node.get(i)` |
 | `ast` | **headline comparison.** The compiler's parser (`KotlinParsing` + JFlex `KotlinLexer` via `PsiBuilder`) with the PSI features stripped, see below | `ASTNode.getFirstChildNode()` / `getTreeNext()` |
-| `lighttree` | `KotlinLightParser.buildLightTree`, exactly what `kotlinc` (K2) runs. Flyweight tree, no node objects | `FlyweightCapableTreeStructure.getChildren` |
+| `lighttree` | `KotlinLightParser.buildLightTree`, the parse `kotlinc` (K2) runs (kotlinc also walks the result once to report errors). Flyweight tree, no node objects | `FlyweightCapableTreeStructure.getChildren` |
 | `psi` | reference: `KtPsiFactory.createFile`, as the IDE / Analysis API gets it | `PsiElement.getFirstChild()` / `getNextSibling()` |
 
 Kotlin compiler 2.4.0, run on JDK 21.
@@ -52,7 +52,9 @@ What could not be disabled, and so remains in `ast`'s numbers:
 Only files **both** parsers accept go into the timed runs (`corpus-accepted.txt`): CongoCC must not throw, and the
 Kotlin tree must contain no error elements. `check` mode writes the list and verifies parity on it:
 
-- the non-whitespace, non-comment source text reachable from each tree is compared per file;
+- the amount of non-whitespace, non-comment source text reachable from each tree is compared per file. This is a
+  character count, so it does not see differences in tokenization: see string templates below. 24 files differ
+  (`check-char-differences.txt`), all explained under "Observations" below;
 - the three Kotlin walks must give identical node counts.
 
 | project | revision | files accepted | bytes |
@@ -128,3 +130,14 @@ it and open it in a browser; the data is embedded.
   `}` (or open a class body with `{;`). The rest are one-offs.
 - **Tree shape**: braced bodies of `when` entries, `if`/`else` and `for` parse as `LambdaLiteral` (about 15,400 of
   them), where the Kotlin grammar has `controlStructureBody: block | statement`.
+- **String templates in raw strings**: inside `"""…"""`, `${x}` lexes as a `$` token followed by `{x}` as string
+  text, so the expression is never parsed: `val a = """${x}"""` gives `[$] [{x}]`, where `"${x}"` correctly gives
+  `[${] [x] [}]`. On the accepted corpus that is about 620 of the 5,469 `${…}` templates Kotlin parses, in 114 files.
+  CongoCC accepts these files, and the parity check only notices when the expression contains whitespace. The
+  effect on the timings is negligible (it saves CongoCC a little work).
+- **Tabs**: with `TAB_SIZE=4`, CongoCC expands tabs to spaces in its buffer, so token text and offsets past a tab no
+  longer match the source.
+- **The 24 files in `check-char-differences.txt`**: in 7, CongoCC counts more characters only because of tab
+  expansion inside string literals (705 characters in each of the two spring-framework JSON tests, 3 per tab). 16 contain
+  unparsed `${…}` templates in raw strings, whose whitespace CongoCC counts as string text. The last one
+  (ktor's `YamlConfig.kt`) has a multi-dollar string `$$"${"`, tokenized differently.

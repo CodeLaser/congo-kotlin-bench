@@ -375,7 +375,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--rule)
       <dt>Versions</dt><dd>Kotlin compiler 2.4.0 · congo-grammars <code>f1443fe</code></dd>
       <dt>Corpus</dt><dd>8,013 <code>.kt</code> files, 35.2 MB, from 11 projects at pinned revisions (ktor, Exposed, detekt, kotlinx.coroutines and others). Only files both parsers accept: CongoCC rejects 56 files that Kotlin accepts, 33 of them for newer syntax such as context parameters.</dd>
       <dt>Protocol</dt><dd>Each (parser, threads) pair runs in its own JVM, in 3 interleaved forks. 1 thread: 5 warm-up + 10 measured passes. 16 and 24 threads: 10 + 20. A pass parses and walks the whole corpus. Files are handed out largest first from a shared counter.</dd>
-      <dt>Parity</dt><dd>Node counts must be identical on every pass. The three Kotlin walks agree with each other, and the non-whitespace source text reachable from both trees is compared per file.</dd>
+      <dt>Parity</dt><dd>Node counts must be identical on every pass. The three Kotlin walks agree with each other, and the amount of non-whitespace source text reachable from both trees is compared per file: 24 files differ, because of CongoCC's tab expansion and its unparsed <code>${…}</code> templates in raw strings (see the README).</dd>
     </dl>
   </section>
 

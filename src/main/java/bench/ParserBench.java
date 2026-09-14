@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -462,8 +463,9 @@ public final class ParserBench {
         double alloc = Arrays.stream(allocPerPass).average().orElse(0);
         double gcMs = Arrays.stream(gcMsPerPass).average().orElse(0);
         StringBuilder passes = new StringBuilder();
-        for (double d : ms) passes.append(passes.isEmpty() ? "" : ",").append(String.format("%.1f", d));
-        System.out.printf("{\"parser\":\"%s\",\"threads\":%d,\"files\":%d,\"chars\":%d,\"bytes\":%d,\"nodes\":%d,"
+        // Locale.ROOT: the default locale may use a decimal comma, which is not JSON.
+        for (double d : ms) passes.append(passes.isEmpty() ? "" : ",").append(String.format(Locale.ROOT, "%.1f", d));
+        System.out.printf(Locale.ROOT, "{\"parser\":\"%s\",\"threads\":%d,\"files\":%d,\"chars\":%d,\"bytes\":%d,\"nodes\":%d,"
                         + "\"median_ms\":%.1f,\"min_ms\":%.1f,\"mb_per_s\":%.2f,\"alloc_bytes_per_char\":%.1f,"
                         + "\"gc_ms_per_pass\":%.1f,\"passes_ms\":[%s]}%n",
                 kind, threads, n, chars, bytes, expectedNodes, median, sorted[0],
@@ -483,7 +485,7 @@ public final class ParserBench {
         for (int i = 0; i < texts.length; i++) roots[i] = parseAndRetain(kind, names[i], texts[i]);
         retained = roots;
         long after = usedAfterGc(mem);
-        System.out.printf("{\"parser\":\"%s\",\"mode\":\"footprint\",\"files\":%d,\"chars\":%d,\"retained_bytes\":%d,"
+        System.out.printf(Locale.ROOT, "{\"parser\":\"%s\",\"mode\":\"footprint\",\"files\":%d,\"chars\":%d,\"retained_bytes\":%d,"
                         + "\"retained_bytes_per_char\":%.1f}%n",
                 kind, texts.length, chars, after - before, (after - before) / (double) chars);
         retained = null;
