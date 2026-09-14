@@ -1,0 +1,613 @@
+<title>Congo Kotlin Bench</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --ground: #f6f7f9;
+  --ink: #15171c;
+  --ink-2: #4a4f5c;
+  --muted: #6c7280;
+  --rule: #e1e4ea;
+  --axis: #b9bec9;
+  --c-congo: #e8652f;
+  --c-ast: #2a78d6;
+  --c-ref: #78a8e2;
+  --warn-bg: #fcf3df;
+  --warn-edge: #ecd49a;
+  --warn-ink: #6e4b00;
+  --warn-mark: #d99a00;
+  --tip-bg: #15171c;
+  --tip-ink: #f6f7f9;
+  --tip-2: #b3b8c3;
+  --focus: #2a78d6;
+  --sans: "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #14161b;
+    --ink: #eceef2;
+    --ink-2: #b3b8c3;
+    --muted: #8d93a0;
+    --rule: #262a32;
+    --axis: #3d424c;
+    --c-congo: #e0692f;
+    --c-ast: #4a90e8;
+    --c-ref: #35598a;
+    --warn-bg: #272215;
+    --warn-edge: #4d3f1c;
+    --warn-ink: #f0cd7a;
+    --warn-mark: #fab219;
+    --tip-bg: #eceef2;
+    --tip-ink: #14161b;
+    --tip-2: #4a4f5c;
+    --focus: #4a90e8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #14161b;
+  --ink: #eceef2;
+  --ink-2: #b3b8c3;
+  --muted: #8d93a0;
+  --rule: #262a32;
+  --axis: #3d424c;
+  --c-congo: #e0692f;
+  --c-ast: #4a90e8;
+  --c-ref: #35598a;
+  --warn-bg: #272215;
+  --warn-edge: #4d3f1c;
+  --warn-ink: #f0cd7a;
+  --warn-mark: #fab219;
+  --tip-bg: #eceef2;
+  --tip-ink: #14161b;
+  --tip-2: #4a4f5c;
+  --focus: #4a90e8;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--sans);
+  padding-inline: 24px;
+  padding-block: 48px 64px;
+  -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 1040px; margin-inline: auto; display: grid; gap: 56px; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+code, .mono { font-family: var(--mono); font-size: 0.87em; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 2px; }
+
+/* header */
+header { display: grid; gap: 20px; }
+.eyebrow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  font: 500 12px/1.4 var(--mono); color: var(--muted);
+}
+.pill {
+  font: 600 11px/1 var(--sans); letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--warn-ink); background: var(--warn-bg); border: 1px solid var(--warn-edge);
+  padding: 5px 8px 4px; border-radius: 999px; display: inline-flex; gap: 6px; align-items: center;
+}
+.pill svg { width: 12px; height: 12px; }
+h1 { font-size: clamp(34px, 6vw, 48px); line-height: 1.04; font-weight: 700; letter-spacing: -0.025em; }
+.lede { font-size: 19px; line-height: 1.5; color: var(--ink-2); max-width: 44em; }
+.lede strong { color: var(--ink); font-weight: 600; }
+
+.ratios {
+  display: flex; flex-wrap: wrap; column-gap: 44px;
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  margin: 8px 0 0; padding: 0;
+}
+.ratios > div { padding-block: 16px 18px; display: grid; gap: 2px; }
+.ratios dt { font-size: 13px; color: var(--muted); }
+.ratios dd { margin: 0; font-size: 36px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; }
+.ratios dd small { font-size: 14px; font-weight: 500; color: var(--ink-2); letter-spacing: 0; margin-left: 4px; }
+
+.caveat {
+  display: grid; grid-template-columns: auto 1fr; gap: 12px;
+  background: var(--warn-bg); border: 1px solid var(--warn-edge); border-radius: 6px;
+  padding: 14px 18px; color: var(--warn-ink); max-width: 52em;
+}
+.caveat svg { width: 18px; height: 18px; margin-top: 2px; }
+.caveat p { color: var(--ink); }
+.caveat strong { color: var(--warn-ink); }
+
+/* sections */
+section { display: grid; gap: 20px; }
+.sec-head { display: grid; gap: 6px; }
+h2 { font-size: 24px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
+.sec-head p { color: var(--ink-2); max-width: 44em; }
+h3 { font-size: 15px; font-weight: 600; display: flex; align-items: baseline; gap: 8px; }
+h3 .unit { font: 400 12px var(--mono); color: var(--muted); }
+
+/* parsers */
+.parsers { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px 32px; }
+.parser { display: grid; grid-template-columns: 12px 1fr; gap: 4px 12px; align-content: start; }
+.swatch { width: 12px; height: 12px; border-radius: 3px; margin-top: 5px; }
+.parser h3 { font: 600 15px/1.5 var(--mono); }
+.parser .tag { font: 500 11px/1 var(--sans); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.parser p { grid-column: 2; color: var(--ink-2); font-size: 14px; }
+
+/* bar charts */
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px 40px; }
+.panel { display: grid; gap: 10px; align-content: start; }
+.panels.stacked { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+.bars { display: grid; }
+.bar-row, .bar-axis {
+  display: grid; grid-template-columns: 5.6em minmax(0, 1fr) 4.6em 3.4em; align-items: center; column-gap: 10px;
+}
+.bar-row { height: 32px; cursor: default; }
+.bar-name { font: 500 13px var(--mono); }
+.bar-track {
+  position: relative; height: 100%;
+  border-left: 1px solid var(--axis);
+  background-image: repeating-linear-gradient(to right, transparent 0 calc(var(--step) - 1px), var(--rule) calc(var(--step) - 1px) var(--step));
+}
+.bar {
+  position: absolute; left: 0; top: 50%; height: 16px; transform: translateY(-50%);
+  border-radius: 0 4px 4px 0; transition: filter .12s;
+}
+.fork {
+  position: absolute; top: 6px; bottom: 6px; width: 2px; margin-left: -1px;
+  background: var(--ink); opacity: .7; box-shadow: 0 0 0 1px var(--ground);
+}
+.bar-row:hover .bar, .bar-row:focus-visible .bar { filter: brightness(1.12) saturate(1.1); }
+.bar-row:focus-visible { outline-offset: 0; }
+.bar-val { font: 500 13px var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+.bar-sub { font: 400 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar-axis .ticks { position: relative; height: 20px; }
+.tick { position: absolute; top: 4px; font: 400 11px var(--mono); color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
+.tick.first { transform: none; }
+.tick.last { transform: translateX(-100%); }
+.chart-note { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.key { display: inline-flex; align-items: center; gap: 6px; }
+.key i { display: inline-block; }
+.key .k-fork { width: 2px; height: 12px; background: var(--ink); opacity: .7; }
+.key .k-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-2); }
+.key .k-med { width: 2px; height: 12px; background: var(--ink); }
+.key .k-zero { width: 1px; height: 12px; background: var(--muted); }
+
+/* strip plot */
+.strip { display: grid; grid-template-columns: 6.6em minmax(0, 1fr); column-gap: 10px; }
+.strip h4 { grid-column: 1 / -1; font-size: 13px; font-weight: 600; color: var(--ink-2); padding-block: 14px 4px; }
+.strip h4:first-child { padding-top: 0; }
+.s-label { display: flex; justify-content: space-between; align-items: center; }
+.s-label .forks { display: grid; gap: 3px; padding-block: 5px; font: 400 9px/10px var(--mono); color: var(--muted); text-align: right; }
+.s-lanes {
+  position: relative; display: grid; gap: 3px; padding-block: 5px;
+  background-image: repeating-linear-gradient(to right, transparent 0 calc(var(--step) - 1px), var(--rule) calc(var(--step) - 1px) var(--step));
+}
+.zero { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--muted); }
+.lane { position: relative; height: 10px; }
+.dot {
+  position: absolute; top: 1px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--ground);
+}
+.dot::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; }
+.dot:hover { transform: scale(1.5); z-index: 2; }
+.med { position: absolute; top: -2px; width: 2px; height: 14px; margin-left: -1px; background: var(--ink); z-index: 1; pointer-events: none; }
+.s-axis { position: relative; height: 22px; grid-column: 2; }
+
+/* profile */
+.findings { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; max-width: 52em; }
+.findings li { display: grid; grid-template-columns: 7.5em 1fr; gap: 16px; align-items: baseline; }
+.findings .fig { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+.findings .fig small { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.findings p { color: var(--ink-2); }
+.findings p strong { color: var(--ink); font-weight: 600; }
+
+/* table */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-variant-numeric: tabular-nums; }
+th, td { padding: 7px 10px; text-align: right; white-space: nowrap; }
+th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+thead th {
+  font: 600 11px/1.3 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--axis); vertical-align: bottom;
+}
+tbody td { font: 400 13px var(--mono); border-bottom: 1px solid var(--rule); }
+tbody tr:last-child td { border-bottom-color: var(--axis); }
+td.p { display: flex; align-items: center; gap: 8px; }
+td.p i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+td.dim { color: var(--muted); }
+.flag { color: var(--warn-ink); display: inline-flex; align-items: center; gap: 6px; }
+.flag i { width: 7px; height: 7px; border-radius: 50%; background: var(--warn-mark); display: inline-block; }
+
+/* setup */
+.setup { display: grid; grid-template-columns: 8.5em 1fr; gap: 10px 24px; margin: 0; max-width: 56em; }
+.setup dt { color: var(--muted); font-size: 14px; }
+.setup dd { margin: 0; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--rule); padding-top: 18px; }
+
+/* tooltip */
+#tip {
+  position: fixed; z-index: 10; pointer-events: none; max-width: 300px;
+  background: var(--tip-bg); color: var(--tip-ink); border-radius: 6px; padding: 8px 10px;
+  font: 400 12px/1.45 var(--sans); box-shadow: 0 6px 20px rgba(0,0,0,.18);
+}
+#tip b { font: 600 14px var(--mono); display: block; }
+#tip span { display: block; color: var(--tip-2); }
+
+@media (max-width: 560px) {
+  body { padding-inline: 16px; padding-block: 32px 48px; }
+  .page { gap: 44px; }
+  .setup { grid-template-columns: 1fr; gap: 2px; }
+  .setup dd { margin-bottom: 10px; }
+  .findings li { grid-template-columns: 6.5em 1fr; gap: 12px; }
+  .ratios { column-gap: 28px; }
+  .bar-row, .bar-axis { grid-template-columns: 5em minmax(0, 1fr) 4.2em 3em; column-gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .dot:hover { transform: none; }
+}
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">
+      <span>results/2026-09-14-m2ultra-intellij-busy.jsonl</span>
+      <span class="pill"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1.5 15 14H1L8 1.5Zm-.75 4.5v4h1.5V6h-1.5Zm0 5v1.5h1.5V11h-1.5Z"/></svg>IntelliJ busy</span>
+    </div>
+    <h1>Congo Kotlin Bench</h1>
+    <p class="lede">CongoCC's generated Kotlin parser against the Kotlin compiler's own parser, on 8,013 real-world <code>.kt</code> files.
+      Parsing plus a full depth-first walk of the tree, the compiler's parser (<code>ast</code>) is
+      <strong id="lede-ratio">about 4× faster</strong> and allocates <strong id="lede-alloc">a ninth</strong> of the memory.</p>
+    <dl class="ratios" id="ratios"></dl>
+  </header>
+
+  <div class="caveat" role="note">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 1.5 15 14H1L8 1.5Zm-.75 4.5v4h1.5V6h-1.5Zm0 5v1.5h1.5V11h-1.5Z"/></svg>
+    <p><strong>Not a clean run.</strong> IntelliJ was using a full core throughout, so fork medians spread by up to
+      <span id="max-spread">18%</span> at 16 threads. Read the absolute throughput as approximate. The ratio held on every fork:
+      paired by fork, <code>ast</code> stayed <span id="fork-ratio">3.5–4.6×</span> ahead of <code>congo</code>.</p>
+  </div>
+
+  <section aria-labelledby="h-parsers">
+    <div class="sec-head">
+      <h2 id="h-parsers">The four parsers</h2>
+      <p>Every parser gets the same in-memory text, builds its tree, and the tree is walked depth-first, into function bodies and lambdas too.</p>
+    </div>
+    <div class="parsers">
+      <div class="parser">
+        <i class="swatch" style="background:var(--c-congo)"></i>
+        <h3>congo</h3>
+        <p>CongoCC, grammar from <code>congo-grammars/kotlin</code>. <code>new KotlinParser(name, text).KotlinFile()</code>, walked with <code>Node.get(i)</code>.</p>
+      </div>
+      <div class="parser">
+        <i class="swatch" style="background:var(--c-ast)"></i>
+        <h3>ast <span class="tag">headline</span></h3>
+        <p>The compiler's parser (<code>KotlinParsing</code> + JFlex lexer via <code>PsiBuilder</code>) with the PSI features stripped: no PsiFile, no wrappers, no lazy blocks, no KDoc.</p>
+      </div>
+      <div class="parser">
+        <i class="swatch" style="background:var(--c-ref)"></i>
+        <h3>lighttree <span class="tag">reference</span></h3>
+        <p><code>KotlinLightParser.buildLightTree</code>, exactly what <code>kotlinc</code> (K2) runs. A flyweight tree with no node objects.</p>
+      </div>
+      <div class="parser">
+        <i class="swatch" style="background:var(--c-ref)"></i>
+        <h3>psi <span class="tag">reference</span></h3>
+        <p><code>KtPsiFactory.createFile</code>, the full PSI tree that the IDE and the Analysis API get.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-tp">
+    <div class="sec-head">
+      <h2 id="h-tp">Throughput</h2>
+      <p>Megabytes of source parsed and walked per second. Each thread count has its own scale. The right-hand column is the speed-up over <code>congo</code>.</p>
+    </div>
+    <div class="panels stacked" id="throughput"></div>
+    <div class="chart-note">
+      <span class="key"><i class="k-fork"></i>each fork's median pass</span>
+      <span>Bar: median over 3 forks. Each fork is a separate JVM.</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-mem">
+    <div class="sec-head">
+      <h2 id="h-mem">Memory</h2>
+      <p>Bytes per character of source. Allocation is counted on the worker threads during a pass (single-threaded run). Retained heap is what the whole corpus's trees occupy after a full GC.</p>
+    </div>
+    <div class="panels" id="memory"></div>
+    <p class="chart-note">The IntelliJ AST keeps whitespace leaves and every single-child node: 12.4 M nodes against CongoCC's 7.4 M on this corpus.</p>
+  </section>
+
+  <section aria-labelledby="h-noise">
+    <div class="sec-head">
+      <h2 id="h-noise">Run-to-run noise</h2>
+      <p>Every measured pass, as a deviation from its row's reported median. Each row has three lanes, forks 1 to 3 from top to bottom. The multi-threaded runs, where
+        the busy core competed for CPU, drift the most.</p>
+    </div>
+    <div class="strip" id="strip"></div>
+    <div class="chart-note">
+      <span class="key"><i class="k-dot"></i>one pass</span>
+      <span class="key"><i class="k-med"></i>fork median</span>
+      <span class="key"><i class="k-zero"></i>reported median</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-why">
+    <div class="sec-head">
+      <h2 id="h-why">Where congo spends its time</h2>
+      <p>From a single-threaded JFR profile of the <code>congo</code> run.</p>
+    </div>
+    <ul class="findings">
+      <li><span class="fig">24%<small>of CPU</small></span>
+        <p>In the <code>TOKEN_HOOK</code> of <code>Kotlin.ccc</code>: <strong>every newline token calls <code>canIgnoreNewlines()</code></strong>, which walks the whole parser call stack comparing production names. The Kotlin compiler answers the same question in constant time, with a stack of flags in <code>SemanticWhitespaceAwarePsiBuilder</code>.</p></li>
+      <li><span class="fig">40%<small>of allocation</small></span>
+        <p>Keeping that call stack costs <strong>a <code>NonTerminalCall</code> per production entry</strong>.</p></li>
+      <li><span class="fig">14%<small>of CPU</small></span>
+        <p><code>BitSet.nextSetBit</code> in <code>TokenSource.nextCachedToken</code>.</p></li>
+      <li><span class="fig">7%<small>of CPU</small></span>
+        <p>Soft-keyword <code>String.contentEquals</code> in <code>typeMatches</code> / <code>hasMatch</code>.</p></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="h-table">
+    <div class="sec-head">
+      <h2 id="h-table">All numbers</h2>
+      <p>What <code>summarize.py</code> prints: medians over forks of each fork's median pass.</p>
+    </div>
+    <div class="table-wrap">
+      <table id="table">
+        <thead><tr>
+          <th scope="col">Parser</th><th scope="col">Threads</th><th scope="col">Median pass</th><th scope="col">MB/s</th>
+          <th scope="col">vs congo</th><th scope="col">M nodes/s</th><th scope="col">Fork spread</th>
+          <th scope="col">Alloc B/char</th><th scope="col">Scaling</th>
+        </tr></thead>
+      </table>
+    </div>
+    <div class="chart-note"><span class="flag"><i></i>fork medians more than 10% apart</span><span>Scaling: speed-up over the same parser on one thread.</span></div>
+  </section>
+
+  <section aria-labelledby="h-setup">
+    <div class="sec-head"><h2 id="h-setup">Setup</h2></div>
+    <dl class="setup">
+      <dt>Machine</dt><dd>Apple M2 Ultra, 16 performance + 8 efficiency cores. IntelliJ busy on one core.</dd>
+      <dt>JVM</dt><dd>OpenJDK 21.0.12.1, <code>-Xms8g -Xmx8g -XX:+AlwaysPreTouch</code>, default G1</dd>
+      <dt>Versions</dt><dd>Kotlin compiler 2.4.0 · congo-grammars <code>f1443fe</code></dd>
+      <dt>Corpus</dt><dd>8,013 <code>.kt</code> files, 35.2 MB, from 11 projects at pinned revisions (ktor, Exposed, detekt, kotlinx.coroutines and others). Only files both parsers accept: CongoCC rejects 56 files that Kotlin accepts, 33 of them for newer syntax such as context parameters.</dd>
+      <dt>Protocol</dt><dd>Each (parser, threads) pair runs in its own JVM, in 3 interleaved forks. 1 thread: 5 warm-up + 10 measured passes. 16 and 24 threads: 10 + 20. A pass parses and walks the whole corpus. Files are handed out largest first from a shared counter.</dd>
+      <dt>Parity</dt><dd>Node counts must be identical on every pass. The three Kotlin walks agree with each other, and the non-whitespace source text reachable from both trees is compared per file.</dd>
+    </dl>
+  </section>
+
+  <footer>Measured 2026-09-14 05:47 UTC. Generated from <code>results/2026-09-14-m2ultra-intellij-busy.jsonl</code>, embedded in this page.</footer>
+</div>
+
+<div id="tip" hidden></div>
+
+<script>
+// [parser, threads, fork, median_ms, alloc_bytes_per_char, gc_ms_per_pass, passes_ms]
+const RUNS = [["congo",1,1,8615.3,379.8,4.2,[8558.2,8585.4,8592.4,8689.7,8506.4,8615.3,8618.6,8615.4,8646.2,8611.4]],["ast",1,1,2451.0,43.5,0.4,[2555.4,2554.0,2448.5,2451.0,2447.0,2442.1,2444.0,2439.1,2498.9,2554.0]],["lighttree",1,1,1818.0,40.0,0.4,[1841.6,1827.1,1828.6,1818.0,1824.9,1804.2,1807.9,1803.5,1804.8,1808.5]],["psi",1,1,3419.7,68.4,0.8,[3385.5,3362.6,3388.2,3368.7,3363.0,3426.0,3424.2,3424.4,3419.7,3427.6]],["congo",16,1,648.0,379.8,7.7,[643.1,645.0,647.4,658.4,673.0,693.9,667.0,698.9,764.1,766.7,875.1,711.5,645.7,640.9,644.3,644.2,642.6,648.0,639.1,644.7]],["ast",16,1,144.5,42.9,1.3,[146.3,142.0,146.6,142.6,143.2,147.5,142.4,142.6,144.7,143.6,144.8,146.0,157.7,142.3,142.8,148.4,142.3,142.2,146.7,144.5]],["lighttree",16,1,117.0,39.5,0.6,[116.6,119.4,118.2,116.5,116.7,117.0,120.1,117.8,120.6,119.6,116.4,116.4,116.5,119.6,116.2,116.2,116.4,121.8,116.4,117.7]],["psi",16,1,212.2,68.4,1.6,[220.4,214.2,212.1,217.1,212.2,216.8,210.1,212.6,210.5,209.9,215.6,210.7,222.7,212.1,217.0,211.7,212.1,210.6,212.4,209.8]],["congo",24,1,553.3,388.5,9.9,[519.6,536.7,520.4,519.5,524.7,519.1,535.5,548.4,553.3,555.7,562.5,564.7,664.4,623.4,601.5,624.3,661.1,564.6,525.3,521.8]],["ast",24,1,119.4,43.5,1.2,[118.9,119.2,126.6,121.1,119.5,120.5,118.9,118.9,119.1,122.2,119.3,120.7,128.4,118.9,118.3,120.4,118.1,119.3,119.4,122.3]],["lighttree",24,1,101.9,40.0,1.0,[102.0,105.9,101.6,100.1,100.1,109.7,100.5,101.2,101.7,102.1,100.7,102.0,101.9,104.5,101.4,101.8,105.1,98.8,102.3,105.8]],["psi",24,1,210.9,68.3,1.8,[202.9,213.0,208.1,209.2,213.7,244.3,217.8,210.8,226.1,202.7,208.1,213.0,216.1,215.7,212.6,210.3,204.0,206.9,210.9,205.2]],["congo",1,2,8734.3,379.8,4.3,[8582.4,8548.8,8734.3,8818.5,8756.5,8822.3,8734.6,8504.9,8470.5,8636.7]],["ast",1,2,2278.0,43.5,1.2,[2281.3,2278.0,2278.9,2278.9,2265.1,2283.9,2275.5,2265.3,2275.3,2277.9]],["lighttree",1,2,1952.9,39.9,0.5,[1952.9,1943.7,1949.5,1938.0,1953.8,1958.8,1948.3,1955.0,1944.3,1968.0]],["psi",1,2,3266.2,68.4,0.8,[3281.4,3298.6,3314.6,3312.7,3228.9,3266.2,3225.6,3126.3,3148.8,3259.0]],["congo",16,2,567.3,375.3,7.2,[565.0,575.3,562.4,567.3,573.5,566.3,574.6,561.8,568.8,565.4,566.0,567.8,564.0,571.2,561.7,567.3,561.6,565.0,571.4,577.3]],["ast",16,2,158.0,43.5,1.2,[150.1,161.6,155.6,154.0,157.0,154.3,151.9,152.6,158.0,155.0,158.6,169.4,158.1,157.6,162.8,161.6,162.6,164.2,161.4,157.2]],["lighttree",16,2,121.1,40.1,0.8,[121.0,120.6,127.7,120.8,121.3,123.6,121.6,121.1,121.8,122.4,121.0,121.0,120.7,125.0,120.9,121.6,122.7,120.6,120.8,120.4]],["psi",16,2,212.8,68.3,1.4,[213.6,213.7,210.2,208.8,208.0,212.8,208.1,211.0,206.7,208.9,215.0,206.6,211.8,215.3,214.1,207.9,221.8,215.2,221.4,220.7]],["congo",24,2,502.7,379.8,8.6,[506.4,517.0,508.0,504.0,511.0,513.2,522.6,511.1,499.8,500.3,502.5,499.8,500.7,503.6,502.7,502.6,497.6,502.6,499.3,498.7]],["ast",24,2,119.1,43.0,1.3,[118.7,120.0,118.7,119.1,118.8,128.1,120.0,118.8,121.2,118.7,118.8,118.7,122.7,123.3,118.7,127.9,119.6,118.8,120.6,118.6]],["lighttree",24,2,101.5,40.1,0.7,[100.9,105.1,102.6,100.4,98.9,101.5,109.3,102.0,101.9,101.7,100.6,98.9,104.8,105.9,100.3,98.2,99.3,100.8,97.5,102.2]],["psi",24,2,187.2,68.4,1.9,[187.5,190.8,188.0,191.0,183.8,187.2,186.0,182.5,192.7,182.7,195.1,183.8,191.5,185.1,190.7,186.5,186.6,186.2,190.7,186.1]],["congo",1,3,8378.5,379.9,4.2,[8429.6,8429.0,8372.3,8378.5,8355.7,8125.2,8173.1,8389.8,8406.1,8377.5]],["ast",1,3,2173.9,43.5,1.1,[2174.2,2169.4,2171.9,2179.2,2173.9,2169.9,2169.9,2169.6,2175.9,2177.1]],["lighttree",1,3,1903.3,40.1,0.5,[1903.3,1887.7,1876.1,1890.4,1888.3,1930.1,1945.5,1925.3,1903.4,1900.9]],["psi",1,3,3230.5,68.4,0.8,[3251.1,3230.5,3213.6,3209.1,3208.1,3217.9,3234.7,3236.5,3226.5,3231.9]],["congo",16,3,685.9,379.8,7.7,[650.6,670.0,664.8,660.1,704.4,648.6,657.0,665.4,685.4,685.9,680.5,694.1,688.2,681.6,705.8,702.1,687.8,718.0,779.6,715.8]],["ast",16,3,159.6,42.9,0.9,[159.6,167.6,159.6,156.9,158.5,163.0,176.8,160.1,171.0,179.6,183.9,182.8,172.7,154.8,148.3,155.5,149.0,148.8,153.1,152.1]],["lighttree",16,3,139.0,39.4,1.0,[145.4,139.0,147.6,131.4,130.2,138.8,152.8,187.8,149.4,159.4,151.7,154.5,126.7,132.2,135.8,132.8,130.3,132.0,121.7,144.5]],["psi",16,3,248.2,67.9,1.8,[227.9,230.4,236.1,235.0,234.1,232.4,250.8,259.8,252.4,235.1,253.4,292.0,255.1,252.2,248.2,237.1,249.0,228.6,251.4,228.9]],["congo",24,3,493.8,379.8,9.3,[496.9,496.2,492.7,491.1,492.0,494.9,490.2,493.0,494.7,495.3,497.1,491.8,493.8,498.3,492.9,492.0,494.0,494.3,491.6,492.7]],["ast",24,3,127.4,42.9,1.2,[127.5,130.9,130.0,124.9,125.0,134.2,125.4,124.8,127.6,125.6,124.9,125.8,132.4,125.9,125.1,128.0,127.5,127.4,128.1,126.1]],["lighttree",24,3,102.3,39.4,1.2,[101.9,102.3,104.7,101.8,102.0,101.8,110.6,101.8,102.4,102.9,105.7,102.5,102.3,104.9,102.2,102.0,101.8,110.1,101.9,102.4]],["psi",24,3,189.8,68.0,1.5,[201.8,192.4,187.6,188.8,189.2,198.0,188.6,194.6,187.7,190.4,193.8,185.7,189.8,186.9,190.8,185.8,192.2,189.3,191.6,184.8]]];
+// [parser, retained_bytes, retained_bytes_per_char]
+const FOOTPRINT = [["congo",712465176,20.2],["ast",645340880,18.3],["lighttree",467404392,13.3],["psi",905188656,25.7]];
+const BYTES = 35209188;
+const NODES = { congo: 7439478, ast: 12415675, lighttree: 12415675, psi: 12415675 };
+
+const PARSERS = ["congo", "ast", "lighttree", "psi"];
+const THREADS = [1, 16, 24];
+const COLOR = { congo: "var(--c-congo)", ast: "var(--c-ast)", lighttree: "var(--c-ref)", psi: "var(--c-ref)" };
+
+const median = xs => { const s = [...xs].sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const mbps = ms => BYTES / 1e6 / (ms / 1e3);
+const fmt = (x, d = 1) => x.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const threadLabel = t => t === 1 ? "1 thread" : `${t} threads`;
+
+// Same aggregation as summarize.py: median over forks of each fork's median pass.
+const stats = {};
+for (const p of PARSERS) for (const t of THREADS) {
+  const forks = RUNS.filter(r => r[0] === p && r[1] === t).sort((a, b) => a[2] - b[2])
+    .map(r => ({ fork: r[2], ms: r[3], alloc: r[4], passes: r[6] }));
+  const ms = median(forks.map(f => f.ms));
+  const msList = forks.map(f => f.ms);
+  stats[p + t] = {
+    p, t, forks, ms, mbs: mbps(ms),
+    spread: (Math.max(...msList) - Math.min(...msList)) / ms * 100,
+    alloc: median(forks.map(f => f.alloc)),
+  };
+}
+const S = (p, t) => stats[p + t];
+
+// ---- tooltip ----
+const tip = document.getElementById("tip");
+const tips = new WeakMap();
+function setTip(el, title, lines) { tips.set(el, { title, lines }); }
+function showTip(el, x, y) {
+  const d = tips.get(el); if (!d) return;
+  tip.replaceChildren();
+  const b = document.createElement("b"); b.textContent = d.title; tip.append(b);
+  for (const l of d.lines) { const s = document.createElement("span"); s.textContent = l; tip.append(s); }
+  tip.hidden = false;
+  const r = tip.getBoundingClientRect();
+  let left = x + 14, top = y + 14;
+  if (left + r.width > innerWidth - 8) left = x - r.width - 14;
+  if (top + r.height > innerHeight - 8) top = y - r.height - 14;
+  tip.style.left = Math.max(8, left) + "px"; tip.style.top = Math.max(8, top) + "px";
+}
+const tipTarget = e => e.target.closest && e.target.closest("[data-tip]");
+document.addEventListener("pointermove", e => { const el = tipTarget(e); el ? showTip(el, e.clientX, e.clientY) : (tip.hidden = true); });
+document.addEventListener("focusin", e => { const el = tipTarget(e); if (el) { const r = el.getBoundingClientRect(); showTip(el, r.left + r.width * 0.5, r.bottom - 10); } });
+document.addEventListener("focusout", () => { tip.hidden = true; });
+addEventListener("scroll", () => { tip.hidden = true; }, { passive: true });
+
+const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+function niceScale(max, target = 4) {
+  const raw = max / target, mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => s >= raw);
+  return { top: Math.ceil(max / step) * step, step };
+}
+
+// Horizontal bar panel: rows = [{name, value, marks[], val, sub, tipTitle, tipLines}]
+function barPanel(title, unit, rows, tickFmt) {
+  const panel = h("div", "panel");
+  const h3 = h("h3", null, title); h3.append(h("span", "unit", unit)); panel.append(h3);
+  const max = Math.max(...rows.flatMap(r => [r.value, ...(r.marks || [])]));
+  const { top, step } = niceScale(max);
+  const bars = h("div", "bars");
+  bars.style.setProperty("--step", (step / top * 100) + "%");
+  for (const r of rows) {
+    const row = h("div", "bar-row"); row.tabIndex = 0; row.dataset.tip = "";
+    row.setAttribute("aria-label", `${r.name}: ${r.val} ${unit}${r.sub ? ", " + r.sub : ""}`);
+    row.append(h("span", "bar-name", r.name));
+    const track = h("span", "bar-track");
+    const bar = h("span", "bar"); bar.style.width = (r.value / top * 100) + "%"; bar.style.background = COLOR[r.name];
+    track.append(bar);
+    for (const m of r.marks || []) { const f = h("span", "fork"); f.style.left = (m / top * 100) + "%"; track.append(f); }
+    row.append(track, h("span", "bar-val", r.val), h("span", "bar-sub", r.sub || ""));
+    setTip(row, r.tipTitle, r.tipLines);
+    bars.append(row);
+  }
+  const axis = h("div", "bar-axis"); axis.setAttribute("aria-hidden", "true");
+  const ticks = h("span", "ticks");
+  for (let v = 0, i = 0; v <= top + 1e-9; v += step, i++) {
+    const t = h("span", "tick" + (v === 0 ? " first" : v >= top - 1e-9 ? " last" : ""), tickFmt(v));
+    t.style.left = (v / top * 100) + "%"; ticks.append(t);
+  }
+  axis.append(h("span"), ticks, h("span"), h("span"));
+  bars.append(axis);
+  panel.append(bars);
+  return panel;
+}
+
+// ---- header figures ----
+{
+  const dl = document.getElementById("ratios");
+  for (const t of THREADS) {
+    const r = S("congo", t).ms / S("ast", t).ms;
+    const d = h("div"); d.append(h("dt", null, threadLabel(t)));
+    const dd = h("dd", null, fmt(r) + "×"); dd.append(h("small", null, "faster")); d.append(dd);
+    dl.append(d);
+  }
+  const a = S("congo", 1).alloc / S("ast", 1).alloc;
+  const d = h("div"); d.append(h("dt", null, "Allocation"));
+  const dd = h("dd", null, fmt(a) + "×"); dd.append(h("small", null, "less")); d.append(dd);
+  dl.append(d);
+  const rs = THREADS.map(t => S("congo", t).ms / S("ast", t).ms);
+  document.getElementById("lede-ratio").textContent = `${fmt(Math.min(...rs))}–${fmt(Math.max(...rs))}× faster`;
+  document.getElementById("lede-alloc").textContent = `1/${Math.round(a)}`;
+
+  const paired = THREADS.flatMap(t => [1, 2, 3].map(f => S("congo", t).forks[f - 1].ms / S("ast", t).forks[f - 1].ms));
+  document.getElementById("fork-ratio").textContent = `${fmt(Math.min(...paired))}–${fmt(Math.max(...paired))}×`;
+  const spreads = PARSERS.map(p => S(p, 16).spread);
+  document.getElementById("max-spread").textContent = Math.round(Math.max(...spreads)) + "%";
+}
+
+// ---- throughput ----
+{
+  const host = document.getElementById("throughput");
+  for (const t of THREADS) {
+    const congo = S("congo", t);
+    host.append(barPanel(threadLabel(t), "MB/s", PARSERS.map(p => {
+      const s = S(p, t);
+      return {
+        name: p, value: s.mbs, marks: s.forks.map(f => mbps(f.ms)),
+        val: fmt(s.mbs), sub: p === "congo" ? "" : fmt(congo.ms / s.ms) + "×",
+        tipTitle: `${fmt(s.mbs)} MB/s`,
+        tipLines: [`${p} · ${threadLabel(t)}`, `${fmt(s.ms)} ms per pass`,
+          `forks: ${s.forks.map(f => fmt(mbps(f.ms))).join(" · ")} MB/s`,
+          p === "congo" ? "" : `${fmt(congo.ms / s.ms, 2)}× congo`].filter(Boolean),
+      };
+    }), v => fmt(v, v < 10 && v % 1 ? 1 : 0)));
+  }
+}
+
+// ---- memory ----
+{
+  const host = document.getElementById("memory");
+  host.append(barPanel("Allocated per character", "bytes", PARSERS.map(p => {
+    const s = S(p, 1);
+    return {
+      name: p, value: s.alloc, val: fmt(s.alloc), sub: "",
+      tipTitle: `${fmt(s.alloc)} B/char`,
+      tipLines: [`${p} · allocated per pass`, `${fmt(s.alloc * 35200121 / 1e9, 1)} GB per pass over the corpus`],
+    };
+  }), v => fmt(v, 0)));
+  const fp = Object.fromEntries(FOOTPRINT.map(([p, b, c]) => [p, { b, c }]));
+  host.append(barPanel("Retained heap per character", "bytes", PARSERS.map(p => ({
+    name: p, value: fp[p].c, val: fmt(fp[p].c), sub: Math.round(fp[p].b / 1e6) + " MB",
+    tipTitle: `${fmt(fp[p].c)} B/char`,
+    tipLines: [`${p} · trees of the whole corpus`, `${Math.round(fp[p].b / 1e6)} MB retained after GC`],
+  })), v => fmt(v, 0)));
+}
+
+// ---- strip plot ----
+{
+  const host = document.getElementById("strip");
+  const devs = [];
+  for (const k in stats) for (const f of stats[k].forks) for (const ms of f.passes) devs.push((ms / stats[k].ms - 1) * 100);
+  const step = 10;
+  const lo = Math.floor(Math.min(...devs) / step) * step, hi = Math.ceil(Math.max(...devs) / step) * step;
+  const pos = d => ((d - lo) / (hi - lo) * 100) + "%";
+  host.style.setProperty("--step", (step / (hi - lo) * 100) + "%");
+  for (const t of THREADS) {
+    host.append(h("h4", null, threadLabel(t)));
+    for (const p of PARSERS) {
+      const s = S(p, t);
+      const label = h("div", "s-label"); label.append(h("span", "bar-name", p));
+      const nums = h("span", "forks"); nums.setAttribute("aria-hidden", "true");
+      [1, 2, 3].forEach(n => nums.append(h("span", null, n)));
+      label.append(nums);
+      const lanes = h("div", "s-lanes");
+      lanes.setAttribute("role", "img");
+      lanes.setAttribute("aria-label", `${p}, ${threadLabel(t)}: passes from ${fmt(Math.min(...s.forks.flatMap(f => f.passes)))} to ${fmt(Math.max(...s.forks.flatMap(f => f.passes)))} ms, median ${fmt(s.ms)} ms`);
+      const zero = h("span", "zero"); zero.style.left = pos(0); lanes.append(zero);
+      for (const f of s.forks) {
+        const lane = h("div", "lane");
+        f.passes.forEach((ms, i) => {
+          const d = (ms / s.ms - 1) * 100;
+          const dot = h("span", "dot"); dot.dataset.tip = ""; dot.style.left = pos(d); dot.style.background = COLOR[p];
+          setTip(dot, `${fmt(ms)} ms`, [`${p} · ${threadLabel(t)}`, `fork ${f.fork}, pass ${i + 1} of ${f.passes.length}`, `${d >= 0 ? "+" : "−"}${fmt(Math.abs(d))}% vs reported median`]);
+          lane.append(dot);
+        });
+        const med = h("span", "med"); med.style.left = pos((f.ms / s.ms - 1) * 100); lane.append(med);
+        lanes.append(lane);
+      }
+      host.append(label, lanes);
+    }
+  }
+  const axis = h("div", "s-axis"); axis.setAttribute("aria-hidden", "true");
+  for (let v = lo; v <= hi; v += step) {
+    const t = h("span", "tick" + (v === lo ? " first" : v === hi ? " last" : ""), (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) + "%");
+    t.style.left = pos(v); axis.append(t);
+  }
+  host.append(h("span"), axis);
+}
+
+// ---- table ----
+{
+  const table = document.getElementById("table");
+  for (const t of THREADS) {
+    const tb = h("tbody");
+    PARSERS.forEach((p, i) => {
+      const s = S(p, t), congo = S("congo", t), single = S(p, 1);
+      const tr = h("tr");
+      const name = h("td", "p"); const sw = h("i"); sw.style.background = COLOR[p]; name.append(sw, document.createTextNode(p));
+      const spread = h("td");
+      if (s.spread > 10) { const f = h("span", "flag"); f.append(h("i"), document.createTextNode(fmt(s.spread) + "%")); spread.append(f); }
+      else spread.textContent = fmt(s.spread) + "%";
+      tr.append(
+        name,
+        h("td", i ? "dim" : null, String(t)),
+        h("td", null, fmt(s.ms) + " ms"),
+        h("td", null, fmt(s.mbs)),
+        h("td", null, fmt(congo.ms / s.ms, 2) + "×"),
+        h("td", null, fmt(NODES[p] / 1e6 / (s.ms / 1e3))),
+        spread,
+        h("td", null, fmt(s.alloc)),
+        h("td", t === 1 ? "dim" : null, t === 1 ? "—" : fmt(single.ms / s.ms) + "×"),
+      );
+      tb.append(tr);
+    });
+    table.append(tb);
+  }
+}
+</script>

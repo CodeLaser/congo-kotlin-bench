@@ -86,20 +86,26 @@ scripts/make-corpus-list.sh  # -> corpus-all.txt
 java -Xmx8g -cp 'build/install/bench/lib/*' bench.ParserBench --mode check \
      --list corpus-all.txt --accepted corpus-accepted.txt
 
-# the benchmark (about 15 minutes; close anything busy first), then the table
-JAVA=$JAVA_HOME/bin/java OUT=results/$(date +%F)-$(hostname -s).jsonl ./run.sh
+# the benchmark (about 15 minutes; refuses to start while another process uses half a core or more), then the table
+OUT=results/$(date +%F)-$(hostname -s).jsonl ./run.sh
 ./summarize.py results/<that file>.jsonl
 ```
 
-`run.sh` also takes `FORKS`, `THREADS` and `PARSERS`. On macOS, `build-congo.sh` builds on a case-sensitive disk image
-(`.congo/`): the generated `ast/` directory holds both `Annotation.java` and `ANNOTATION.java` (and
-`Operator`/`OPERATOR`), which overwrite each other on the default case-insensitive filesystem.
+`run.sh` uses `$JAVA`, else `$JAVA_HOME/bin/java`, else on macOS the JDK 21 that `/usr/libexec/java_home -v 21`
+finds. It also takes `FORKS`, `THREADS`, `PARSERS`, and `BUSY_OK=1` to skip the idle check.
 
-## Results so far
+On macOS, `build-congo.sh` builds on a case-sensitive disk image (`.congo/`): the generated `ast/` directory holds both
+`Annotation.java` and `ANNOTATION.java` (and `Operator`/`OPERATOR`), which overwrite each other on the default
+case-insensitive filesystem.
+
+## Results
 
 `results/2026-09-14-m2ultra-intellij-busy.jsonl`: Apple M2 Ultra (16 performance + 8 efficiency cores), JDK 21.0.12.
 **Not clean**: IntelliJ was using a full core throughout, so forks spread 5–18% at 16 threads. The ratios held on
-every fork (congo vs ast single-threaded: 3.4–4.0×).
+every fork: paired by fork, ast stayed 3.5–4.6× ahead of congo at every thread count.
+
+`results/2026-09-14-m2ultra-intellij-busy.html` shows the same run as charts, including every measured pass. Download
+it and open it in a browser; the data is embedded.
 
 | parser | 1 thread | 16 threads | 24 threads | allocated / char | retained heap / char |
 |---|---|---|---|---|---|

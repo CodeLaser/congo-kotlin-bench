@@ -4,7 +4,21 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-JAVA=${JAVA:-/opt/homebrew/Cellar/openjdk@21/21.0.12.1/libexec/openjdk.jdk/Contents/Home/bin/java}
+# The JDK: $JAVA, else $JAVA_HOME/bin/java, else (macOS) the JDK 21 that java_home finds.
+if [ -z "${JAVA:-}" ]; then
+  if [ -n "${JAVA_HOME:-}" ]; then
+    JAVA=$JAVA_HOME/bin/java
+  elif [ -x /usr/libexec/java_home ] && home=$(/usr/libexec/java_home -v 21 2>/dev/null); then
+    JAVA=$home/bin/java
+  else
+    echo "set JAVA or JAVA_HOME to a JDK 21" >&2; exit 1
+  fi
+fi
+version=$("$JAVA" -version 2>&1 | head -1)
+case $version in
+  *'"21'*) ;;
+  *) echo "warning: the published results are on JDK 21, this is: $version" >&2 ;;
+esac
 LIST=${LIST:-corpus-accepted.txt}
 FORKS=${FORKS:-3}
 THREADS=${THREADS:-"1 16 24"}
@@ -12,8 +26,15 @@ PARSERS=${PARSERS:-"congo ast lighttree psi"}
 OUT=${OUT:-results.jsonl}
 JVM_OPTS=(-Xms8g -Xmx8g -XX:+AlwaysPreTouch -cp 'build/install/bench/lib/*')
 
+# Refuse to start while something else is using CPU (the first results file was measured next to a busy IntelliJ).
+busy=$(ps -Ao pcpu=,pid=,comm= | awk -v self=$$ '$1 >= 50 && $2 != self')
+if [ -n "$busy" ] && [ "${BUSY_OK:-}" != 1 ]; then
+  printf 'other processes are using CPU (%%CPU PID COMMAND), close them or set BUSY_OK=1:\n%s\n' "$busy" >&2
+  exit 1
+fi
+
 {
-  echo "# $(date -u +%FT%TZ)  $($JAVA -version 2>&1 | head -1)  $(sysctl -n machdep.cpu.brand_string)"
+  echo "# $(date -u +%FT%TZ)  $version  $(sysctl -n machdep.cpu.brand_string)  load $(sysctl -n vm.loadavg)"
 } >> "$OUT"
 
 for fork in $(seq 1 "$FORKS"); do
