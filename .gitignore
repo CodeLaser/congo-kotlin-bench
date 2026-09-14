@@ -1,0 +1,9 @@
+build/
+.gradle/
+.idea/
+# fetched by scripts/fetch-corpus.sh
+corpus/
+# built by scripts/build-congo.sh
+.congo/
+libs/congo-kotlin.jar
+*.jfr

@@ -1,0 +1,11 @@
+files: 8071   congo rejects: 58   kotlin error nodes: 2   accepted by both: 8013 (35,200,121 chars)
+congo-only rejects: 56   kotlin-only errors: 0
+on accepted files:
+  significant chars (non-whitespace, non-comment leaf text)  kotlin 21,521,646  congo 21,523,265  files differing: 24
+  kotlin AST nodes 12,415,675  (whitespace leaves 2,017,871, comments 38,527)  unparsed lazy elements before walk: 0
+  kotlin BLOCK (not a lambda body) 55,116  LAMBDA_EXPRESSION 71,593  (their sum 126,709; lambda-body BLOCKs 71,593)
+  congo Block 39,737  LambdaLiteral 86,962  (their sum 126,699)
+  congo nodes 7,439,478  (tokens 5,207,595, of which statement-separating newlines 260,996)
+  timed-walk node counts: ast 12,415,675  lighttree 12,415,675  psi 12,415,675  congo 7,439,478   files where a walk disagrees: 0
+--- congo-only rejects (56, all in check-congo-only-rejects.txt)
+--- significant-char differences (24, all in check-char-differences.txt)
